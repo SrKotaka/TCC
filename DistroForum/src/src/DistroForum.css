@@ -1,0 +1,55 @@
+@font-face {
+    font-family: 'FiraCode';
+    src: url(../assets/FiraCode-Medium.ttf) format('truetype');
+}
+
+*{
+    font-family: FiraCode;
+}
+
+body {
+    /*background-color: #242424;*//*remover comentario quando tudo tiver pronto*/
+}
+
+select{
+    background-color: #242424;
+    color: #fff;
+    border: 1px solid #fff;
+}
+
+.container {
+    background-color: #242424;/*remover quando tudo tiver pronto*/
+    width: 60%;
+    margin-left: 20%;
+    margin-right: 20%;
+    padding: 20px; 
+}
+
+.containerCenter{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.title{
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.modernTitle{
+    background: linear-gradient(#9898ff  0%, #0f3a8b 50%, #9898ff 100%);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.icon{
+    border-radius: 100%;
+    width: 80px;
+    height: 80px;
+}
+
+.searchIcon{
+    width: 10px;
+    height: 10px;
+}
