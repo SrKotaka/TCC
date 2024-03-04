@@ -7,8 +7,8 @@
     font-family: FiraCode;
 }
 
-body {
-    /*background-color: #242424;*//*remover comentario quando tudo tiver pronto*/
+body {    
+    background-color: #242424;
 }
 
 select{
@@ -17,39 +17,60 @@ select{
     border: 1px solid #fff;
 }
 
-.container {
-    background-color: #242424;/*remover quando tudo tiver pronto*/
+.containerDistroForum {
     width: 60%;
     margin-left: 20%;
     margin-right: 20%;
     padding: 20px; 
 }
 
-.containerCenter{
+.containerCenterDistroForum{
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-.title{
+.titleDistroForum{
     color: #fff;
     display: flex;
     flex-direction: column;
 }
 
-.modernTitle{
+.modernTitleDistroForum{
     background: linear-gradient(#9898ff  0%, #0f3a8b 50%, #9898ff 100%);
     background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
-.icon{
+.iconDistroForum{
     border-radius: 100%;
     width: 80px;
     height: 80px;
 }
 
-.searchIcon{
+.searchIconDistroForum{
     width: 10px;
     height: 10px;
+}
+
+.headerDistroForum {
+    display: flex;
+    justify-content: space-between;
+}
+
+.accountDistroForum{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40%;
+    background: linear-gradient(#9898ff  0%, #0f3a8b 50%, #9898ff 100%);
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.accountH6DistroForum{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
 }

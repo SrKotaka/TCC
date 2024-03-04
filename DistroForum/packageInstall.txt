@@ -1,0 +1,4 @@
+cd distroforum
+npm install
+npm i react-router-dom
+npm run dev

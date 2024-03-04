@@ -1,29 +1,63 @@
+import { useState, useEffect } from 'react';
+import {Link} from 'react-router-dom'
 import './DistroForum.css'
 import Icon from '../assets/Icon.png'
 import SearchIcon from '../assets/SearchIcon.png'
 
 function DistroForum() {
+  const [windowsDistro, setWindowsDistro] = useState("");
+  const [macDistro, setMacDistro] = useState("");
+  const [linuxDistro, setLinuxDistro] = useState("");
+
+  useEffect(() => {
+    if (windowsDistro !== "") {
+      setMacDistro("");
+      setLinuxDistro("");
+    }
+  }, [windowsDistro]);
+
+  useEffect(() => {
+    if (macDistro !== "") {
+      setWindowsDistro("");
+      setLinuxDistro("");
+    }
+  }, [macDistro]);
+
+  useEffect(() => {
+    if (linuxDistro !== "") {
+      setWindowsDistro("");
+      setMacDistro("");
+    }
+  }, [linuxDistro]);
 
   return (
     <>
-      <div className='container'>
-        <img src={Icon} className='icon'/>
-        <h2 className='title'>Distro<span className='modernTitle'> Forum</span></h2>
-        <div className='containerCenter'>
-          <select>
+      <div className='containerDistroForum'>
+        <div className='headerDistroForum'>
+          <div>
+            <img src={Icon} className='iconDistroForum'/>
+            <h2 className='titleDistroForum'>Distro<span className='modernTitleDistroForum'> Forum</span></h2>
+          </div>
+          <div>
+            <Link to='/Account' className='accountDistroForum'>Login</Link>
+            <h6 className='accountH6DistroForum'>Não possui uma conta? Clique aqui</h6>
+          </div>
+        </div>
+        <div className='containerCenterDistroForum'>
+          <select value={windowsDistro} onChange={(e) => setWindowsDistro(e.target.value)}>  
             <option value="">Select a Windows distribution</option>
             <option value="1">Windows 10</option>
             <option value="2">Windows 8.1</option>
             <option value="3">Windows 7</option>
             <option value="4">Windows 11</option>
           </select>
-          <select>
+          <select value={windowsDistro} onChange={(e) => setWindowsDistro(e.target.value)}>
             <option value="">Select a MacOS distribution</option>
             <option value="5">macOS Monterey</option>
             <option value="6">macOS Big Sur</option>
             <option value="7">macOS Catalina</option>
           </select>
-          <select>
+          <select value={windowsDistro} onChange={(e) => setWindowsDistro(e.target.value)}>
             <option value="">Select a Linux distribution</option>
             <option value="8">Ubuntu</option>
             <option value="9">Debian</option>
@@ -45,7 +79,7 @@ function DistroForum() {
             <option value="25">Slackware</option>
           </select>
           <input type="text" placeholder="Search..."/>
-          <button><img src={SearchIcon} className='searchIcon'/></button>
+          <button><img src={SearchIcon} className='searchIconDistroForum'/></button>
         </div>
       </div>
     </>
