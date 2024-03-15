@@ -1,0 +1,11 @@
+objetivo: onu numero 10
+
+ideia: ajudar pessoas nescessitadas utilizando pix para reduzir desigualdade
+
+metas:
+1. pagina principal (concluido)
+2. pagina de login/registro (andamento)
+3. utilizar conexão sql para registrar pessoa,email,senha,pix (fazer)
+4. footer com sessão sobre proposito e criadores do site (fazer) 
+5. fazer em algum lugar da pagina principal um lugar para o usuario fazer
+uploud e postar no que ele precisa de ajuda (fazer)
