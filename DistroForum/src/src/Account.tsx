@@ -1,32 +1,52 @@
-import './Account.css'
-import {FaUser, FaLock} from 'react-icons/fa';
+import { useState } from 'react';
+import './Account.css';
+import { FaUser, FaEnvelope, FaLock } from 'react-icons/fa';
 
 function Account() {
+
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const handleToggleMode = () => {
+    setIsRegistering(!isRegistering);
+  };
+
   return (
     <>
       <div className='containerAccount'>
         <form action=''>
-          <h1>Login</h1>
+          <h1>{isRegistering ? 'Register' : 'Login'}</h1>
           <div className='input-boxAccount'>
-            <FaUser className='iconAccount'/>
+            <FaUser className='iconAccount' />
             <input type='text' placeholder='Username' required />
           </div>
+          {isRegistering && (
+            <div className='input-boxAccount'>
+              <FaEnvelope className='iconAccount' />
+              <input type='email' placeholder='Email' required />
+            </div>
+          )}
           <div className='input-boxAccount'>
-            <FaLock className='iconAccount'/>
+            <FaLock className='iconAccount' />
             <input type='password' placeholder='Password' required />
           </div>
-          <button type='submit'>Login</button>
+          <button type='submit'>{isRegistering ? 'Register' : 'Login'}</button>
           <div className='remember-forgotAccount'>
-            <label><input type='checkbox'/> Remember me </label>
-            <a href='#'>Forgot password?</a>
+            <label><input type='checkbox' />Remember me <a href='#'>Forgot password?</a></label> 
           </div>
           <div className='register-linkAccount'>
-            <p>Don't have an account? <a href='#'>Register</a></p>
+            <p>
+              {isRegistering
+                ? "Already have an account? "
+                : "Don't have an account? "}
+              <a href='#' onClick={handleToggleMode}>
+                {isRegistering ? 'Login' : 'Register'}
+              </a>
+            </p>
           </div>
         </form>
       </div>
     </>
-  )
+  );
 }
 
-export default Account
+export default Account;
