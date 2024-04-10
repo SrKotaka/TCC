@@ -81,6 +81,7 @@ function DistroForum() {
           <input type="text" placeholder="Search..."/>
           <button><img src={SearchIcon} className='searchIconDistroForum'/></button>
         </div>
+        <button className='newPostDistroForum'>+</button>
       </div>
     </>
   )
