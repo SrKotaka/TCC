@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import './Account.css';
-import { FaUser, FaEnvelope, FaLock } from 'react-icons/fa';
+import {Link} from 'react-router-dom'
+import { FaUser, FaEnvelope, FaLock, FaReply } from 'react-icons/fa';
 
 function Account() {
 
@@ -12,6 +13,7 @@ function Account() {
 
   return (
     <>
+      <Link to='/'><FaReply className='iconAccount' /></Link>
       <div className='containerAccount'>
         <form action=''>
           <h1>{isRegistering ? 'Register' : 'Login'}</h1>
