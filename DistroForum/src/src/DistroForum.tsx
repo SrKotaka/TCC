@@ -40,7 +40,7 @@ function DistroForum() {
           </div>
           <div>
             <Link to='/Account' className='accountDistroForum'>Login</Link>
-            <h6 className='accountH6DistroForum'>Não possui uma conta? Clique aqui</h6>
+            <h6 className='accountH6DistroForum'>Don't have account? Click here</h6>
           </div>
         </div>
         <div className='containerCenterDistroForum'>
@@ -81,7 +81,7 @@ function DistroForum() {
           <input type="text" placeholder="Search..."/>
           <button><img src={SearchIcon} className='searchIconDistroForum'/></button>
         </div>
-        <button className='newPostDistroForum'>+</button>
+        <Link to='/NewPost' className='newPostDistroForum'>+</Link>
       </div>
     </>
   )

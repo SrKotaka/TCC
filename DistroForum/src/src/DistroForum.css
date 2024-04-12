@@ -89,4 +89,5 @@ select{
     margin-top: 50%;
     margin-left: 85%;
     cursor: pointer;
+    text-decoration: none;
 }
