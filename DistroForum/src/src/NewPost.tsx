@@ -9,6 +9,7 @@ function NewPost() {
     <Link to='/'><FaReply className='iconNewPost' /></Link>
       <div className='containerNewPost'>
 
+        
       </div>
     </>
   );
