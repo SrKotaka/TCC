@@ -1,35 +1,48 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import axios from "axios";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [city, setCity] = useState("");
+  const [weather, setWeather] = useState(null);
+
+  async function fetchWeather() {
+    const API_KEY = "9afc53f9544d4a02a2e141129251102"; // Substitua pela sua chave
+    const url = `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${city}&aqi=no`;
+
+    try {
+      const response = await axios.get(url);
+      setWeather(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar os dados:", error);
+      setWeather(null);
+    }
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h1>Previsão de Enchentes</h1>
+      <input
+        type="text"
+        placeholder="Digite a cidade"
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+      />
+      <button onClick={fetchWeather}>Buscar Clima</button>
+
+      {weather && (
+        <div>
+          <h2>{weather.location.name}, {weather.location.country}</h2>
+          <p>Temperatura: {weather.current.temp_c}°C</p>
+          <p>Chuva: {weather.current.precip_mm} mm</p>
+          <p>Umidade: {weather.current.humidity}%</p>
+          <p>Vento: {weather.current.wind_kph} km/h</p>
+          <img src={weather.current.condition.icon} alt="Condição do tempo" />
+          <p>{weather.current.condition.text}</p>
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
