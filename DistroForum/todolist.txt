@@ -1,9 +1,0 @@
-metas:
-1. pagina principal (concluido)
-2. pagina de login/registro (concluido)
-3. botão na pagina principal para o usuario fazer uploud e postar no que ele precisa de ajuda (concluido)
-4. utilizar conexão sql para registrar pessoa,email e senha (fazer)
-5. footer com sessão sobre proposito e criadores do site (fazer) 
-6. pagina de criar um novo post (fazer)
-7. sistema de recuperação de email (fazer)
-8. ao clicar no botao de criar novo post verificar se o usuario esta logado, se sim, permitir passagem, se nao, mandar criar conta (fazer)
