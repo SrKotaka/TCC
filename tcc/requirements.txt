@@ -1,0 +1,3 @@
+cd tcc
+npm install
+npm run dev
