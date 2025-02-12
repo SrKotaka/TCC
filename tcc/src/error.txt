@@ -1,3 +1,5 @@
+estou com um problema que quando eu clico em buscar clima ele aparece as informações por 1 segundo e depois apaga e aparece esse texto Erro ao buscar os dados. Verifique o nome da cidade e tente novamente.
+
 import { useState } from "react";
 import axios from "axios";
 import "./App.css";
