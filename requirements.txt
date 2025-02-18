@@ -1,0 +1,13 @@
+front-end
+
+cd front-end
+npm install
+npm install axios
+npm run dev
+
+back-end
+
+cd back-end
+source venv/bin/activate
+pip install flask flask-cors
+python server.py

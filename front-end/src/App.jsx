@@ -1,5 +1,3 @@
-estou com um problema que quando eu clico em buscar clima ele aparece as informações por 1 segundo e depois apaga e aparece esse texto Erro ao buscar os dados. Verifique o nome da cidade e tente novamente.
-
 import { useState } from "react";
 import axios from "axios";
 import "./App.css";
@@ -23,15 +21,23 @@ function App() {
     const API_KEY = "9afc53f9544d4a02a2e141129251102"; // Substitua pela sua chave da API
     const url = `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${city}&aqi=no`;
 
-    try {
+  try{
       const response = await axios.get(url);
       setWeather(response.data);
 
       // Enviar dados para o backend de ML
-      const mlResponse = await axios.post("http://localhost:5000/predict", {
-        precip_mm: response.data.current.precip_mm,
-        humidity: response.data.current.humidity,
-      });
+      const mlResponse = await axios.post(
+        "http://localhost:5000/predict",
+        {
+          precip_mm: response.data.current.precip_mm,
+          humidity: response.data.current.humidity,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       setFloodRisk(mlResponse.data.flood_risk);
     } catch (error) {
