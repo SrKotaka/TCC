@@ -8,6 +8,7 @@ npm run dev
 back-end
 
 cd back-end
+python3 -m venv venv
 source venv/bin/activate
 pip install flask flask-cors
 python server.py
