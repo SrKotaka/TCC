@@ -11,4 +11,8 @@ cd back-end
 python3 -m venv venv
 source venv/bin/activate
 pip install flask flask-cors
+pip install numpy
+pip install pandas
+pip install scikit-learn
+python3 -m pip install joblib
 python server.py

@@ -43,14 +43,34 @@ function App() {
         precip_mm,
         humidity,
       });
-
+  
+      if (response.data.error) {
+        throw new Error(response.data.error);
+      }
+  
       setFloodRisk(response.data.flood_risk);
     } catch (error) {
       console.error("Erro ao processar previsão de enchente:", error);
-      setError("Erro ao processar previsão de enchente.");
+      setError("Erro ao processar previsão de enchente: " + error.message);
       setFloodRisk(null);
     }
+  }  
+
+  async function trainModel(floodRiskReal) {
+    try {
+      await axios.post("http://localhost:5000/train", {
+        precip_mm: weather.current.precip_mm,
+        humidity: weather.current.humidity,
+        flood_risk: floodRiskReal,
+      });
+  
+      alert("Modelo atualizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao treinar o modelo:", error);
+      setError("Erro ao atualizar o modelo.");
+    }
   }
+  
 
   return (
     <div className="App">
@@ -87,6 +107,14 @@ function App() {
           <p>{floodRisk === 1 ? "Cuidado! Há risco de enchente na região." : "Nenhum risco detectado."}</p>
         </div>
       )}
+
+      {floodRisk !== null && (
+        <div>
+          <h2>Confirmar previsão</h2>
+          <button onClick={() => trainModel(floodRisk)}>Confirmar Previsão</button>
+        </div>
+      )}
+
     </div>
   );
 }
