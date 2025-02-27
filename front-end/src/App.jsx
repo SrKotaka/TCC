@@ -75,6 +75,11 @@ function App() {
   return (
     <div className="App">
       <h1>Previsão de Enchentes</h1>
+
+      <div className="rolling-marquee">
+        <div className="marquee-text">Enchentes</div>
+      </div>
+
       <div>
         <input
           type="text"
@@ -102,7 +107,7 @@ function App() {
 
       {floodRisk !== null && (
         <div className={`flood-risk ${floodRisk === 1 ? "high-risk" : "low-risk"}`}>
-          <h2>Previsão de Enchentes</h2>
+          <h2>Risco</h2>
           <p>Risco de Enchente: <strong>{floodRisk === 1 ? "Alto" : "Baixo"}</strong></p>
           <p>{floodRisk === 1 ? "Cuidado! Há risco de enchente na região." : "Nenhum risco detectado."}</p>
         </div>
@@ -110,8 +115,8 @@ function App() {
 
       {floodRisk !== null && (
         <div>
-          <h2>Confirmar previsão</h2>
-          <button onClick={() => trainModel(floodRisk)}>Confirmar Previsão</button>
+          <h2>Enviar previsão para a inteligência arficial</h2>
+          <button onClick={() => trainModel(floodRisk)}>Enviar</button>
         </div>
       )}
 
