@@ -77,7 +77,7 @@ function App() {
       <h1>Previsão de Enchentes</h1>
 
       <div className="rolling-marquee">
-        <div className="marquee-text">Enchentes</div>
+        <div className="marquee-text">Possiveis cidades com enchentes: "nome da cidade"</div>
       </div>
 
       <div>
