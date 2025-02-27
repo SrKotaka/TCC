@@ -4,20 +4,76 @@ import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from flask_cors import CORS
+import os
 
 app = Flask(__name__)
 CORS(app)
+DATA_FILE = "flood_data.csv"
+data = pd.read_csv(DATA_FILE)
+print(data)
+
 
 # Tenta carregar um modelo salvo, senão cria um novo
 try:
+    # Tentar carregar o modelo salvo
     model = joblib.load("flood_model.pkl")
-except:
+except FileNotFoundError:
+    print("Modelo não encontrado. Criando um novo...")
+    # Se o modelo não existir, cria um novo
     model = RandomForestClassifier(n_estimators=100, random_state=42)
-    # Inicializa com um conjunto de dados fictício para não começar do zero
-    X_train = np.array([[10, 80], [50, 95], [5, 60], [80, 98], [0, 40]])  # [precipitação, umidade]
-    y_train = np.array([0, 1, 0, 1, 0])  # 0 = Baixo Risco, 1 = Alto Risco
-    model.fit(X_train, y_train)
-    joblib.dump(model, "flood_model.pkl")
+
+    # Verificar se o CSV existe e contém dados
+    if os.path.exists(DATA_FILE) and os.stat(DATA_FILE).st_size > 0:
+        data = pd.read_csv(DATA_FILE)
+
+        if not data.empty and "precip_mm" in data.columns and "humidity" in data.columns:
+            X_train = data[["precip_mm", "humidity"]].values
+            y_train = data["flood_risk"].values
+            model.fit(X_train, y_train)
+
+            # Salvar o modelo treinado
+            joblib.dump(model, "flood_model.pkl")
+        else:
+            print("⚠️ Aviso: CSV está vazio ou com formato incorreto.")
+    else:
+        print("⚠️ Aviso: O arquivo de dados não existe ou está vazio.")
+
+
+
+# Se o arquivo não existir, cria com cabeçalho
+if not os.path.exists(DATA_FILE):
+    pd.DataFrame(columns=["precip_mm", "humidity", "flood_risk"]).to_csv(DATA_FILE, index=False)
+
+@app.route("/train", methods=["POST"])
+def train():
+    try:
+        data = request.json
+        precip = data["precip_mm"]
+        humidity = data["humidity"]
+        flood_risk = data["flood_risk"]
+
+        # Salvar os novos dados no arquivo CSV
+        df = pd.DataFrame([[precip, humidity, flood_risk]], columns=["precip_mm", "humidity", "flood_risk"])
+        df.to_csv(DATA_FILE, mode="a", header=False, index=False)
+
+        # Recarregar todos os dados para re-treinar o modelo
+        data = pd.read_csv(DATA_FILE)
+        X_train = data[["precip_mm", "humidity"]].values
+        y_train = data["flood_risk"].values
+
+        # Exclui modelo antigo para forçar um novo treinamento
+        if os.path.exists("flood_model.pkl"):
+            os.remove("flood_model.pkl")
+
+        model.fit(X_train, y_train)
+        joblib.dump(model, "flood_model.pkl")
+
+        return jsonify({"message": "Modelo atualizado com sucesso!"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -39,33 +95,6 @@ def predict():
         return jsonify({"error": f"Erro nos dados: {str(e)}"})
     except Exception as e:
         return jsonify({"error": f"Erro inesperado: {str(e)}"})
-
-@app.route("/train", methods=["POST"])
-def train():
-    try:
-        data = request.json
-        precip = data["precip_mm"]
-        humidity = data["humidity"]
-        flood_risk = data["flood_risk"]  # O risco de enchente real informado pelo usuário
-
-        # Adiciona os novos dados ao modelo e re-treina
-        X_new = np.array([[precip, humidity]])
-        y_new = np.array([flood_risk])
-
-        # Carrega dados antigos e adiciona novos
-        X_old = np.array([[10, 80], [50, 95], [5, 60], [80, 98], [0, 40]])
-        y_old = np.array([0, 1, 0, 1, 0])
-
-        X_train = np.vstack((X_old, X_new))
-        y_train = np.hstack((y_old, y_new))
-
-        model.fit(X_train, y_train)
-        joblib.dump(model, "flood_model.pkl")
-
-        return jsonify({"message": "Modelo atualizado com sucesso!"})
-
-    except Exception as e:
-        return jsonify({"error": str(e)})
 
 @app.route("/", methods=["GET"])
 def home():
