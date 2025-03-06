@@ -8,6 +8,7 @@ function App() {
   const [floodRisk, setFloodRisk] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [highRiskCities, setHighRiskCities] = useState([]);
 
   const API_KEY = "9afc53f9544d4a02a2e141129251102";
 
@@ -43,41 +44,46 @@ function App() {
         precip_mm,
         humidity,
       });
-  
+
       if (response.data.error) {
         throw new Error(response.data.error);
       }
-  
+
       setFloodRisk(response.data.flood_risk);
     } catch (error) {
       console.error("Erro ao processar previsão de enchente:", error);
       setError("Erro ao processar previsão de enchente: " + error.message);
       setFloodRisk(null);
     }
-  }  
+  }
 
   async function trainModel(floodRiskReal) {
     try {
-      await axios.post("http://localhost:5000/train", {
-        precip_mm: weather.current.precip_mm,
-        humidity: weather.current.humidity,
-        flood_risk: floodRiskReal,
-      });
-  
-      alert("Modelo atualizado com sucesso!");
+        await axios.post("http://localhost:5000/train", {
+            city: weather.location.name,  // Incluindo o nome da cidade
+            precip_mm: weather.current.precip_mm,
+            humidity: weather.current.humidity,
+            flood_risk: floodRiskReal,
+        });
+
+        alert("Modelo atualizado com sucesso!");
     } catch (error) {
-      console.error("Erro ao treinar o modelo:", error);
-      setError("Erro ao atualizar o modelo.");
+        console.error("Erro ao treinar o modelo:", error);
+        setError("Erro ao atualizar o modelo.");
     }
-  }
-  
+}
+
 
   return (
     <div className="App">
       <h1>Previsão de Enchentes</h1>
 
       <div className="rolling-marquee">
-        <div className="marquee-text">Possiveis cidades com enchentes: "nome da cidade"</div>
+        <div className="marquee-text">
+          {highRiskCities.length > 0
+            ? `Possíveis cidades com enchente: ${highRiskCities.join(", ")}`
+            : "Nenhuma cidade com risco detectado"}
+        </div>
       </div>
 
       <div>
@@ -119,6 +125,21 @@ function App() {
           <button onClick={() => trainModel(floodRisk)}>Enviar</button>
         </div>
       )}
+
+      <div className="whatsapp-popup">
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent(
+            "Olá! Gostaria de saber o risco de enchente para a cidade de: "
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+            alt="WhatsApp"
+          />
+        </a>
+      </div>
 
     </div>
   );

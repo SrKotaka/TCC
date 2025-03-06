@@ -1,14 +1,16 @@
-precip_mm,humidity,flood_risk
-0.45,54,0
-0,48,0
-0.45,54,0
-0,42,0
-0.08,84,0
-0.41,66,0
-0,55,0
-50,85,1
-60,90,1
-70,95,1
-80,98,1
-0,43,0
-0,51,0
+city,precip_mm,humidity,flood_risk
+Campinas,50,85,1
+São Paulo,60,90,1
+Rio de Janeiro,70,95,1
+Belo Horizonte,80,98,1
+Curitiba,0,55,0
+Porto Alegre,0.45,54,0
+Salvador,0,42,0
+Manaus,0.08,84,0
+Brasília,0.41,66,0
+Fortaleza,0,51,0
+Recife,0,58,0
+Campinas,0,58,0
+Japao,0,57,0
+Porto Velho,0.01,79,0
+Campinas,0,45,0
