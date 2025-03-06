@@ -59,20 +59,19 @@ function App() {
 
   async function trainModel(floodRiskReal) {
     try {
-        await axios.post("http://localhost:5000/train", {
-            city: weather.location.name,  // Incluindo o nome da cidade
-            precip_mm: weather.current.precip_mm,
-            humidity: weather.current.humidity,
-            flood_risk: floodRiskReal,
-        });
+      await axios.post("http://localhost:5000/train", {
+        city: weather.location.name,  // Incluindo o nome da cidade
+        precip_mm: weather.current.precip_mm,
+        humidity: weather.current.humidity,
+        flood_risk: floodRiskReal,
+      });
 
-        alert("Modelo atualizado com sucesso!");
+      alert("Modelo atualizado com sucesso!");
     } catch (error) {
-        console.error("Erro ao treinar o modelo:", error);
-        setError("Erro ao atualizar o modelo.");
+      console.error("Erro ao treinar o modelo:", error);
+      setError("Erro ao atualizar o modelo.");
     }
-}
-
+  }
 
   return (
     <div className="App">
@@ -121,25 +120,29 @@ function App() {
 
       {floodRisk !== null && (
         <div>
-          <h2>Enviar previsão para a inteligência arficial</h2>
+          <h2>Enviar previsão para a inteligência artificial</h2>
           <button onClick={() => trainModel(floodRisk)}>Enviar</button>
         </div>
       )}
 
-      <div className="whatsapp-popup">
-        <a
-          href={`https://wa.me/?text=${encodeURIComponent(
-            "Olá! Gostaria de saber o risco de enchente para a cidade de: "
-          )}`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-            alt="WhatsApp"
-          />
-        </a>
-      </div>
+      {/* Mostrar o botão do WhatsApp apenas se houver clima e risco de enchente */}
+      {city && weather && floodRisk !== null && (
+        <div className="whatsapp-popup">
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(
+              `Olá! o risco de enchente para a cidade de ${weather.location.name} é: \nTemperatura: ${weather.current.temp_c}°C\nChuva: ${weather.current.precip_mm} mm\nUmidade: ${weather.current.humidity}%\nRisco de Enchente: ${floodRisk === 1 ? "Alto" : "Baixo"
+              }`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+              alt="WhatsApp"
+            />
+          </a>
+        </div>
+      )}
 
     </div>
   );
