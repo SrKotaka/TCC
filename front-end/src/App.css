@@ -49,3 +49,14 @@
   height: 35px;
 }
 
+.map-container {
+  margin-top: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.leaflet-container {
+  height: 400px;
+  width: 100%;
+}

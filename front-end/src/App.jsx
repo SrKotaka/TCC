@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import RiskMap from "./RiskMap";
 import "./App.css";
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [highRiskCities, setHighRiskCities] = useState([]);
+  const [cityCoords, setCityCoords] = useState(null);
 
   const API_KEY = "9afc53f9544d4a02a2e141129251102";
 
@@ -27,6 +29,15 @@ function App() {
       );
 
       setWeather(response.data);
+
+      // Extrair coordenadas da cidade
+      const cityCoords = {
+        name: response.data.location.name,
+        lat: response.data.location.lat,
+        lon: response.data.location.lon,
+      };
+      setCityCoords(cityCoords);
+
       await fetchFloodRisk(response.data.current.precip_mm, response.data.current.humidity);
     } catch (error) {
       console.error("Erro ao buscar os dados:", error);
@@ -122,6 +133,13 @@ function App() {
         <div>
           <h2>Enviar previsão para a inteligência artificial</h2>
           <button onClick={() => trainModel(floodRisk)}>Enviar</button>
+        </div>
+      )}
+
+      {floodRisk !== null && (
+        <div className="map-container">
+          <h2>Mapa de Risco</h2>
+          <RiskMap city={cityCoords} floodRisk={floodRisk} />
         </div>
       )}
 

@@ -3,6 +3,7 @@ front-end
 cd front-end
 npm install
 npm install axios
+npm install leaflet react-leaflet
 npm run dev
 
 back-end
