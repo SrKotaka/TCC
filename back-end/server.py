@@ -1,13 +1,15 @@
 from flask import Flask, request, jsonify
+from flask_socketio import SocketIO, emit
 import joblib
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from flask_cors import CORS
 import os
 
-
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")  # Habilita WebSockets
+
 DATA_FILE = "flood_data.csv"
 
 # Verifica se o arquivo existe e contém dados antes de ler
@@ -19,7 +21,6 @@ if os.path.exists(DATA_FILE) and os.stat(DATA_FILE).st_size > 0:
 else:
     print("⚠️ Aviso: O arquivo de dados não existe ou está vazio.")
     data = None
-
 
 # Tenta carregar um modelo salvo, senão cria um novo
 try:
@@ -40,12 +41,6 @@ except FileNotFoundError:
 if not os.path.exists(DATA_FILE):
     pd.DataFrame(columns=["precip_mm", "humidity", "flood_risk"]).to_csv(DATA_FILE, index=False)
     print("📄 Arquivo flood_data.csv criado.")
-
-
-
-# Se o arquivo não existir, cria com cabeçalho
-if not os.path.exists(DATA_FILE):
-    pd.DataFrame(columns=["precip_mm", "humidity", "flood_risk"]).to_csv(DATA_FILE, index=False)
 
 @app.route("/train", methods=["POST"])
 def train():
@@ -69,11 +64,12 @@ def train():
         model.fit(X_train, y_train)
         joblib.dump(model, "flood_model.pkl")
 
+        # Notificar todos os clientes sobre a atualização
+        socketio.emit("risk_update", {"city": city, "flood_risk": flood_risk})
+
         return jsonify({"message": "Modelo atualizado com sucesso!"})
     except Exception as e:
         return jsonify({"error": str(e)})
-
-
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -96,7 +92,6 @@ def predict():
     except Exception as e:
         return jsonify({"error": f"Erro inesperado: {str(e)}"})
 
-
 @app.route("/high_risk_cities", methods=["GET"])
 def high_risk_cities():
     try:
@@ -118,4 +113,4 @@ def home():
     return "API de previsão de enchentes está funcionando!"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    socketio.run(app, debug=True)  # Usar socketio.run em vez de app.run

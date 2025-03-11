@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import RiskMap from "./RiskMap";
 import "./App.css";
+import io from "socket.io-client";
+
+const socket = io("http://localhost:5000");  // Conecta ao servidor WebSocket
 
 function App() {
   const [city, setCity] = useState("");
@@ -13,6 +16,17 @@ function App() {
   const [cityCoords, setCityCoords] = useState(null);
 
   const API_KEY = "9afc53f9544d4a02a2e141129251102";
+
+  // Configura o listener para notificações em tempo real
+  useEffect(() => {
+    socket.on("risk_update", (data) => {
+      alert(`ATENÇÃO: Risco de enchente atualizado para ${data.city}. Risco: ${data.flood_risk === 1 ? "Alto" : "Baixo"}`);
+    });
+
+    return () => {
+      socket.off("risk_update");  // Limpa o listener ao desmontar o componente
+    };
+  }, []);
 
   async function fetchWeather() {
     if (!city.trim()) {
@@ -136,14 +150,13 @@ function App() {
         </div>
       )}
 
-      {floodRisk !== null && (
+      {floodRisk !== null && cityCoords && (
         <div className="map-container">
           <h2>Mapa de Risco</h2>
           <RiskMap city={cityCoords} floodRisk={floodRisk} />
         </div>
       )}
 
-      {/* Mostrar o botão do WhatsApp apenas se houver clima e risco de enchente */}
       {city && weather && floodRisk !== null && (
         <div className="whatsapp-popup">
           <a
@@ -161,7 +174,6 @@ function App() {
           </a>
         </div>
       )}
-
     </div>
   );
 }
