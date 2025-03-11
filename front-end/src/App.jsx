@@ -157,23 +157,70 @@ function App() {
         </div>
       )}
 
-      {city && weather && floodRisk !== null && (
-        <div className="whatsapp-popup">
-          <a
-            href={`https://wa.me/?text=${encodeURIComponent(
-              `Olá! o risco de enchente para a cidade de ${weather.location.name} é: \nTemperatura: ${weather.current.temp_c}°C\nChuva: ${weather.current.precip_mm} mm\nUmidade: ${weather.current.humidity}%\nRisco de Enchente: ${floodRisk === 1 ? "Alto" : "Baixo"
-              }`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-              alt="WhatsApp"
-            />
-          </a>
-        </div>
-      )}
+{city && weather && floodRisk !== null && (
+  <div className="social-popups">
+    {/* WhatsApp e Twitter */}
+    <div className="whatsapp-popup">
+      <a
+        href={`https://wa.me/?text=${encodeURIComponent(
+          `Olá! O risco de enchente para a cidade de ${weather.location.name} é: \nTemperatura: ${weather.current.temp_c}°C\nChuva: ${weather.current.precip_mm} mm\nUmidade: ${weather.current.humidity}%\nRisco de Enchente: ${floodRisk === 1 ? "Alto" : "Baixo"}`
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+          alt="WhatsApp"
+        />
+      </a>
+    </div>
+
+    <div className="twitter-popup">
+      <a
+        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+          `Olá! O risco de enchente para a cidade de ${weather.location.name} é: \nTemperatura: ${weather.current.temp_c}°C\nChuva: ${weather.current.precip_mm} mm\nUmidade: ${weather.current.humidity}%\nRisco de Enchente: ${floodRisk === 1 ? "Alto" : "Baixo"}`
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/6/6f/Logo_of_Twitter.svg"
+          alt="Twitter"
+        />
+      </a>
+    </div>
+
+    {/* Facebook com cópia automática da mensagem */}
+    <div className="facebook-popup">
+      <a
+        href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+          window.location.href
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => {
+          e.preventDefault(); // Impede que o link abra imediatamente
+          navigator.clipboard.writeText(
+            `Olá! O risco de enchente para a cidade de ${weather.location.name} é: \nTemperatura: ${weather.current.temp_c}°C\nChuva: ${weather.current.precip_mm} mm\nUmidade: ${weather.current.humidity}%\nRisco de Enchente: ${floodRisk === 1 ? "Alto" : "Baixo"}`
+          ).then(() => {
+            alert("Mensagem copiada para a área de transferência!"); // Notifica o usuário
+            window.open(
+              `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                window.location.href
+              )}`,
+              "_blank"
+            ); // Abre o Facebook após copiar
+          });
+        }}
+      >
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+          alt="Facebook"
+        />
+      </a>
+    </div>
+  </div>
+)}
     </div>
   );
 }

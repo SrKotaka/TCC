@@ -28,14 +28,20 @@
     transform: translateX(-100%);
   }
 }
-
-.whatsapp-popup {
+.social-popups {
   position: fixed;
   bottom: 20px;
   right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.whatsapp-popup,
+.twitter-popup,
+.facebook-popup {
   width: 60px;
   height: 60px;
-  background-color: #25d366;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -44,7 +50,21 @@
   cursor: pointer;
 }
 
-.whatsapp-popup img {
+.whatsapp-popup {
+  background-color: #25d366;
+}
+
+.twitter-popup {
+  background-color: #ffffff;
+}
+
+.facebook-popup {
+  background-color: #1877f2;
+}
+
+.whatsapp-popup img,
+.twitter-popup img,
+.facebook-popup img {
   width: 35px;
   height: 35px;
 }
