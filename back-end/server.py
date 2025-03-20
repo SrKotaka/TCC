@@ -5,6 +5,9 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from flask_cors import CORS
 import os
+from geopy.geocoders import Nominatim
+
+geolocator = Nominatim(user_agent="flood_risk_app")
 
 app = Flask(__name__)
 CORS(app)
@@ -90,20 +93,33 @@ def predict():
     except ValueError as e:
         return jsonify({"error": f"Erro nos dados: {str(e)}"})
     except Exception as e:
-        return jsonify({"error": f"Erro inesperado: {str(e)}"})
+        return jsonify({"error": f"Erro inesperado: {str(e)}"})   
 
 @app.route("/high_risk_cities", methods=["GET"])
 def high_risk_cities():
     try:
         data = pd.read_csv(DATA_FILE)
         
-        # Verifica se a coluna "city" existe no dataset
         if "city" not in data.columns:
             return jsonify({"error": "O dataset não contém informações de cidades."})
         
         # Filtrar cidades com risco alto
-        high_risk = data[data["flood_risk"] == 1]["city"].unique().tolist()
-        return jsonify({"high_risk_cities": high_risk})
+        high_risk_data = data[data["flood_risk"] == 1]
+        high_risk_cities = []
+        
+        for city in high_risk_data["city"].unique():
+            try:
+                location = geolocator.geocode(city)
+                if location:
+                    high_risk_cities.append({
+                        "city": city,
+                        "lat": location.latitude,
+                        "lon": location.longitude
+                    })
+            except Exception as e:
+                print(f"Erro ao geocodificar {city}: {e}")
+        
+        return jsonify({"high_risk_cities": high_risk_cities})
     
     except Exception as e:
         return jsonify({"error": str(e)})
