@@ -1,4 +1,4 @@
-import MapaBrasil from './MapaBrasil';
+import MapaBrasil from './Site/MapaBrasil';
 
 function App() {
   return (
