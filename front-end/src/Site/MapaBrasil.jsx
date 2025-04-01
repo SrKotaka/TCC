@@ -7,6 +7,23 @@ import municipios from '../municipios.json';
 import { useState } from 'react';
 import axios from 'axios';
 
+const [riscoEnchente, setRiscoEnchente] = useState({});
+
+const fetchRiscoEnchente = async (lat, lon, municipioNome) => {
+  const apiUrl = `http://127.0.0.1:8000/prever/?chuva=30&temp=${temps[municipioNome] || 25}&nivel_rio=5`;
+  
+  try {
+    const response = await axios.get(apiUrl);
+    setRiscoEnchente((prev) => ({
+      ...prev,
+      [municipioNome]: response.data.risco,
+    }));
+  } catch (error) {
+    console.error(`Erro ao buscar previsão para ${municipioNome}:`, error);
+  }
+};
+
+
 const MapaBrasil = () => {
   const [temps, setTemps] = useState({});
 
@@ -55,6 +72,9 @@ const MapaBrasil = () => {
                 {temps[municipio.nome] !== undefined
                   ? `${temps[municipio.nome]}°C`
                   : 'Clique para carregar'}
+              </p>
+              <p>
+                Risco de Enchente: {riscoEnchente[municipio.nome] || 'Clique para carregar'}
               </p>
             </Popup>
           </Marker>
