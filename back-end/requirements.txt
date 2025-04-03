@@ -1,4 +1,5 @@
 python3 -m venv venv
 source venv/bin/activate
-pip install fastapi uvicorn numpy tensorflow scikit-learn
+pip install torch torchvision torchaudio numpy pandas scikit-learn fastapi uvicorn requests
+export WEATHER_API_KEY="9afc53f9544d4a02a2e141129251102"
 uvicorn server:app --reload

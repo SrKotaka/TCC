@@ -4,81 +4,76 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import municipios from '../municipios.json';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import axios from 'axios';
+import L from 'leaflet';
 
-const [riscoEnchente, setRiscoEnchente] = useState({});
+const API_URL = 'http://localhost:8000/predict/';
 
-const fetchRiscoEnchente = async (lat, lon, municipioNome) => {
-  const apiUrl = `http://127.0.0.1:8000/prever/?chuva=30&temp=${temps[municipioNome] || 25}&nivel_rio=5`;
-  
-  try {
-    const response = await axios.get(apiUrl);
-    setRiscoEnchente((prev) => ({
-      ...prev,
-      [municipioNome]: response.data.risco,
-    }));
-  } catch (error) {
-    console.error(`Erro ao buscar previsão para ${municipioNome}:`, error);
-  }
-};
+const defaultIcon = new L.Icon({
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
 
+const alertIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
 
 const MapaBrasil = () => {
-  const [temps, setTemps] = useState({});
+  const [dados, setDados] = useState({});
+  const pendingRequests = useRef(new Set());
 
-  const fetchTemperature = async (lat, lon, municipioNome) => {
-    if (temps[municipioNome] !== undefined) return;
+  const fetchData = async (lat, lon, municipioNome) => {
+    if (dados[municipioNome] || pendingRequests.current.has(municipioNome)) return;
+    pendingRequests.current.add(municipioNome);
 
-    const apiKey = '9afc53f9544d4a02a2e141129251102';
-    const url = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${lat},${lon}&aqi=no`;
     try {
-      const response = await axios.get(url);
-      const temp = response.data.current.temp_c;
-      setTemps((prevTemps) => ({
-        ...prevTemps,
-        [municipioNome]: temp,
-      }));
+      const { data } = await axios.get(`${API_URL}?lat=${lat}&lon=${lon}`);
+      if (data.erro) throw new Error(data.erro);
+      setDados((prev) => ({ ...prev, [municipioNome]: data }));
     } catch (error) {
-      console.error(`Erro ao buscar temperatura para ${municipioNome}:`, error);
-      setTemps((prevTemps) => ({
-        ...prevTemps,
-        [municipioNome]: 'Erro',
-      }));
+      console.error(`Erro ao buscar dados para ${municipioNome}:`, error);
+      setDados((prev) => ({ ...prev, [municipioNome]: { erro: true } }));
+    } finally {
+      pendingRequests.current.delete(municipioNome);
     }
   };
 
   return (
-    <MapContainer center={[-14.2350, -51.9253]} zoom={4} style={{ height: '100vh', width: '100vw' }}>
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
+    <MapContainer center={[-14.235, -51.9253]} zoom={4} style={{ height: '100vh', width: '100vw' }}>
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='© OpenStreetMap contributors' />
       <MarkerClusterGroup>
-        {municipios.map((municipio) => (
-          <Marker
-            key={municipio.nome}
-            position={[municipio.lat, municipio.lon]}
-            eventHandlers={{
-              click: () => {
-                fetchTemperature(municipio.lat, municipio.lon, municipio.nome);
-              },
-            }}
-          >
-            <Popup>
-              <h3>{municipio.nome}</h3>
-              <p>
-                Temperatura:{' '}
-                {temps[municipio.nome] !== undefined
-                  ? `${temps[municipio.nome]}°C`
-                  : 'Clique para carregar'}
-              </p>
-              <p>
-                Risco de Enchente: {riscoEnchente[municipio.nome] || 'Clique para carregar'}
-              </p>
-            </Popup>
-          </Marker>
-        ))}
+        {municipios.map((municipio) => {
+          const info = dados[municipio.nome];
+          const icon = info && info.probabilidade > 0.3 ? alertIcon : defaultIcon;
+
+          return (
+            <Marker
+              key={municipio.nome}
+              position={[municipio.lat, municipio.lon]}
+              icon={icon}
+              eventHandlers={{ click: () => fetchData(municipio.lat, municipio.lon, municipio.nome) }}
+            >
+              <Popup>
+                <h3>{municipio.nome}</h3>
+                {info ? (
+                  info.erro ? (
+                    <p style={{ color: 'red' }}>Erro ao obter dados</p>
+                  ) : (
+                    <p><strong>Probabilidade de enchente:</strong> {(info.probabilidade * 100).toFixed(2)}%</p>
+                  )
+                ) : (
+                  <p style={{ fontStyle: 'italic' }}>Clique no marcador para carregar os dados...</p>
+                )}
+              </Popup>
+            </Marker>
+          );
+        })}
       </MarkerClusterGroup>
     </MapContainer>
   );
