@@ -17,13 +17,6 @@ const defaultIcon = new L.Icon({
   popupAnchor: [1, -34],
 });
 
-const alertIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-});
-
 const MapaBrasil = () => {
   const [dados, setDados] = useState({});
   const pendingRequests = useRef(new Set());
@@ -37,7 +30,7 @@ const MapaBrasil = () => {
       if (data.erro) throw new Error(data.erro);
       setDados((prev) => ({ ...prev, [municipioNome]: data }));
     } catch (error) {
-      console.error(`Erro ao buscar dados para ${municipioNome}:`, error);
+      console.error(`Erro ao buscar dados para ${municipioNome}:`, error.message);
       setDados((prev) => ({ ...prev, [municipioNome]: { erro: true } }));
     } finally {
       pendingRequests.current.delete(municipioNome);
@@ -50,7 +43,7 @@ const MapaBrasil = () => {
       <MarkerClusterGroup>
         {municipios.map((municipio) => {
           const info = dados[municipio.nome];
-          const icon = info && info.probabilidade > 0.3 ? alertIcon : defaultIcon;
+          const icon = defaultIcon;
 
           return (
             <Marker
