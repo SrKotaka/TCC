@@ -61,7 +61,7 @@ const MapaBrasil = () => {
                     <p><strong>Probabilidade de enchente:</strong> {(info.probabilidade * 100).toFixed(2)}%</p>
                   )
                 ) : (
-                  <p style={{ fontStyle: 'italic' }}>Clique no marcador para carregar os dados...</p>
+                  <p style={{ fontStyle: 'italic' }}>⏳ Carregando...</p>
                 )}
               </Popup>
             </Marker>
