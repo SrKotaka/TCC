@@ -1,12 +1,14 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import municipios from '../municipios.json';
+import './MapaBrasil.css'
 import { useState, useRef } from 'react';
 import axios from 'axios';
 import L from 'leaflet';
+import { Link } from 'react-router-dom';
 
 const API_URL = 'http://localhost:8000/predict/';
 
@@ -19,9 +21,11 @@ const defaultIcon = new L.Icon({
 
 const MapaBrasil = () => {
   const [dados, setDados] = useState({});
+  const [municipioSelecionado, setMunicipioSelecionado] = useState(null);
   const pendingRequests = useRef(new Set());
 
   const fetchData = async (lat, lon, municipioNome) => {
+    setMunicipioSelecionado({ nome: municipioNome, carregando: true }); // ativa a barra enquanto carrega
     if (dados[municipioNome] || pendingRequests.current.has(municipioNome)) return;
     pendingRequests.current.add(municipioNome);
 
@@ -34,41 +38,50 @@ const MapaBrasil = () => {
       setDados((prev) => ({ ...prev, [municipioNome]: { erro: true } }));
     } finally {
       pendingRequests.current.delete(municipioNome);
+      setMunicipioSelecionado({ nome: municipioNome, carregando: false });
     }
   };
 
-  return (
-    <MapContainer center={[-14.235, -51.9253]} zoom={4} style={{ height: '100vh', width: '100vw' }}>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='© OpenStreetMap contributors' />
-      <MarkerClusterGroup>
-        {municipios.map((municipio) => {
-          const info = dados[municipio.nome];
-          const icon = defaultIcon;
+  const fecharSidebar = () => setMunicipioSelecionado(null);
 
-          return (
-            <Marker
-              key={municipio.nome}
-              position={[municipio.lat, municipio.lon]}
-              icon={icon}
-              eventHandlers={{ click: () => fetchData(municipio.lat, municipio.lon, municipio.nome) }}
-            >
-              <Popup>
-                <h3>{municipio.nome}</h3>
-                {info ? (
-                  info.erro ? (
-                    <p style={{ color: 'red' }}>Erro ao obter dados</p>
-                  ) : (
-                    <p><strong>Probabilidade de enchente:</strong> {(info.probabilidade * 100).toFixed(2)}%</p>
-                  )
-                ) : (
-                  <p style={{ fontStyle: 'italic' }}>⏳ Carregando...</p>
-                )}
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MarkerClusterGroup>
-    </MapContainer>
+  return (
+    <>
+      <MapContainer center={[-14.235, -51.9253]} zoom={4} style={{ height: '100vh', width: '100vw' }}>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='© OpenStreetMap contributors' />
+        <MarkerClusterGroup>
+          {municipios.map((municipio) => {
+            const icon = defaultIcon;
+            return (
+              <Marker
+                key={municipio.nome}
+                position={[municipio.lat, municipio.lon]}
+                icon={icon}
+                eventHandlers={{
+                  click: () => fetchData(municipio.lat, municipio.lon, municipio.nome)
+                }}
+              />
+            );
+          })}
+        </MarkerClusterGroup>
+      </MapContainer>
+
+      {municipioSelecionado && (
+        <div className="sidebar">
+          <button className="sidebar-close" onClick={fecharSidebar}>X</button>
+          <h2>{municipioSelecionado.nome}</h2>
+          {municipioSelecionado.carregando ? (
+            <p>Carregando dados...</p>
+          ) : dados[municipioSelecionado.nome]?.erro ? (
+            <p style={{ color: 'red' }}>Erro ao obter dados.</p>
+          ) : (
+            <>
+              <p><strong>Probabilidade de enchente:</strong> {(dados[municipioSelecionado.nome].probabilidade * 100).toFixed(2)}%</p>
+              <Link to="/Dicas">O que fazer em caso de enchente?</Link>
+            </>
+          )}
+        </div>
+      )}
+    </>
   );
 };
 
