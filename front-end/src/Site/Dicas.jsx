@@ -1,9 +1,11 @@
 import './Dicas.css';
+import { Link } from 'react-router-dom';
 import { ShieldAlert, CloudRain, MapPin, PhoneCall } from 'lucide-react';
 
 const Dicas = () => {
   return (
     <section className="dicas-section">
+      <Link to="/" className="back-link">←</Link>
       <div className="dicas-container">
         <h1>🚨 O que fazer em caso de enchente</h1>
         <p className="intro-text">
