@@ -120,6 +120,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    return {"mensagem": "API de previsão de enchentes ativa!"}
+
 @app.get("/predict/")
 def predict_flood(lat: float, lon: float):
     try:
@@ -137,3 +141,5 @@ def predict_flood(lat: float, lon: float):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro na previsão: {str(e)}")
 
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -25,10 +25,16 @@ const MapaBrasil = () => {
   const pendingRequests = useRef(new Set());
 
   const fetchData = async (lat, lon, municipioNome) => {
-    setMunicipioSelecionado({ nome: municipioNome, carregando: true }); // ativa a barra enquanto carrega
-    if (dados[municipioNome] || pendingRequests.current.has(municipioNome)) return;
-    pendingRequests.current.add(municipioNome);
 
+    if (dados[municipioNome] && !pendingRequests.current.has(municipioNome)) {
+      setMunicipioSelecionado({ nome: municipioNome, carregando: false });
+      return;
+    }
+    
+    setMunicipioSelecionado({ nome: municipioNome, carregando: true });
+    if (pendingRequests.current.has(municipioNome)) return;
+    pendingRequests.current.add(municipioNome);
+  
     try {
       const { data } = await axios.get(`${API_URL}?lat=${lat}&lon=${lon}`);
       if (data.erro) throw new Error(data.erro);

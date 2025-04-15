@@ -4,9 +4,10 @@
     box-sizing: border-box;
   }
   
-  html, body {
+  html, body, #root {
     height: 100%;
-  }
+    width: 100%;
+  }  
   
   .dicas-section {
     width: 100%;
