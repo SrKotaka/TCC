@@ -9,6 +9,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from threading import Thread
 import os
+from sklearn.ensemble import RandomForestClassifier
+import joblib
 
 conn = sqlite3.connect("dados_climaticos.db", check_same_thread=False)
 cursor = conn.cursor()
@@ -29,6 +31,10 @@ def salvar_dados(temperatura, umidade, vento, enchente):
     conn.commit()
 
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
+
+# Função para iniciar o treinamento do modelo Random Forest
+def iniciar_treinamento_rf():
+    treinar_modelo_rf()
 
 def get_weather_data(lat, lon, tentativas=3):
     url = f"http://api.weatherapi.com/v1/current.json?key={WEATHER_API_KEY}&q={lat},{lon}"
@@ -111,6 +117,86 @@ def treinar_modelo():
         print("Modelo treinado e salvo!")
         time.sleep(3600)
 
+# Inicializar o modelo Random Forest
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+def treinar_modelo_rf():
+    global rf_model
+    while True:
+        cursor.execute("SELECT temperatura, umidade, vento, enchente FROM clima")
+        dados = cursor.fetchall()
+        if len(dados) < 10:
+            print("⏳ Aguardando mais dados para treino...")
+            time.sleep(3600)
+            continue
+
+        np.random.shuffle(dados)
+        split = int(0.8 * len(dados))
+        treino, teste = dados[:split], dados[split:]
+
+        X_treino = np.array([d[:3] for d in treino])
+        y_treino = np.array([d[3] for d in treino])
+
+        X_teste = np.array([d[:3] for d in teste])
+        y_teste = np.array([d[3] for d in teste])
+
+        # Treinando o modelo Random Forest
+        rf_model.fit(X_treino, y_treino)
+
+        # Avaliar o modelo
+        acuracia = rf_model.score(X_teste, y_teste)
+        print(f"Acurácia do modelo Random Forest: {acuracia * 100:.2f}%")
+
+        # Salvando o modelo
+        joblib.dump(rf_model, 'modelo_rf.pkl')
+        print("Modelo Random Forest treinado e salvo!")
+        time.sleep(3600)
+
+# Carregar o modelo Random Forest salvo
+def carregar_modelo_rf():
+    global rf_model
+    if os.path.exists('modelo_rf.pkl'):
+        try:
+            rf_model = joblib.load('modelo_rf.pkl')
+            print("Modelo Random Forest carregado com sucesso!")
+        except Exception as e:
+            print(f"Erro ao carregar o modelo: {e}")
+    else:
+        print("⚠️ Nenhum modelo Random Forest salvo encontrado.")
+
+def predict_ensemble(lat, lon):
+    try:
+        # Verificar se o modelo foi treinado
+        if rf_model is None:
+            raise HTTPException(status_code=500, detail="Modelo Random Forest não foi treinado ainda.")
+
+        features = get_weather_data(lat, lon)
+        if features is None:
+            raise HTTPException(status_code=500, detail="Erro ao obter dados climáticos")
+
+        # Previsão com o modelo LSTM
+        input_tensor = torch.tensor(np.array(features).reshape(1, 1, -1), dtype=torch.float32)
+        with torch.no_grad():
+            lstm_prediction = model(input_tensor).item()
+
+        # Previsão com o modelo Random Forest
+        rf_prediction = rf_model.predict([features])[0]
+
+        # Média ponderada das previsões
+        final_prediction = 0.6 * lstm_prediction + 0.4 * rf_prediction
+
+        salvar_dados(features[0], features[1], features[2], int(final_prediction > 0.5))
+
+        return {"enchente": bool(final_prediction > 0.5), "probabilidade": round(final_prediction, 4)}
+
+    except Exception as e:
+        print(f"Erro na previsão: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro na previsão: {str(e)}")
+    
+    # Treinar o modelo Random Forest em um thread separado
+thread_rf = Thread(target=iniciar_treinamento_rf, daemon=True)
+thread_rf.start()
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -127,18 +213,9 @@ def root():
 @app.get("/predict/")
 def predict_flood(lat: float, lon: float):
     try:
-        features = get_weather_data(lat, lon)
-        if features is None:
-            raise HTTPException(status_code=500, detail="Erro ao obter dados climáticos")
-
-        input_tensor = torch.tensor(np.array(features).reshape(1, 1, -1), dtype=torch.float32)
-        with torch.no_grad():
-            prediction = model(input_tensor).item()
-
-        salvar_dados(features[0], features[1], features[2], int(prediction > 0.5))
-
-        return {"enchente": prediction > 0.5, "probabilidade": round(prediction, 4)}
+        return predict_ensemble(lat, lon)
     except Exception as e:
+        print(f"Erro detalhado: {e}")
         raise HTTPException(status_code=500, detail=f"Erro na previsão: {str(e)}")
 
 if __name__ == "__main__":
