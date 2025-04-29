@@ -11,6 +11,7 @@ from threading import Thread
 import os
 from sklearn.ensemble import RandomForestClassifier
 import joblib
+import xgboost as xgb
 
 conn = sqlite3.connect("dados_climaticos.db", check_same_thread=False)
 cursor = conn.cursor()
@@ -120,11 +121,55 @@ def treinar_modelo():
 # Inicializar o modelo Random Forest
 rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
 
+def treinar_modelo_xgb():
+    global xgb_model
+    conn_local = sqlite3.connect("dados_climaticos.db")
+    cursor_local = conn_local.cursor()
+
+    while True:
+        cursor_local.execute("SELECT temperatura, umidade, vento, enchente FROM clima")
+        dados = cursor_local.fetchall()
+        if len(dados) < 10:
+            print("⏳ Aguardando mais dados para treino do XGBoost...")
+            time.sleep(3600)
+            continue
+
+        np.random.shuffle(dados)
+        split = int(0.8 * len(dados))
+        treino, teste = dados[:split], dados[split:]
+
+        X_treino = np.array([d[:3] for d in treino])
+        y_treino = np.array([d[3] for d in treino])
+        X_teste = np.array([d[:3] for d in teste])
+        y_teste = np.array([d[3] for d in teste])
+
+        xgb_model.fit(X_treino, y_treino)
+        acuracia = xgb_model.score(X_teste, y_teste)
+        print(f"Acurácia do modelo XGBoost: {acuracia * 100:.2f}%")
+
+        joblib.dump(xgb_model, "modelo_xgb.pkl")
+        print("Modelo XGBoost treinado e salvo!")
+        time.sleep(3600)
+
+def carregar_modelo_xgb():
+    global xgb_model
+    if os.path.exists('modelo_xgb.pkl'):
+        try:
+            xgb_model = joblib.load('modelo_xgb.pkl')
+            print("Modelo XGBoost carregado com sucesso!")
+        except Exception as e:
+            print(f"Erro ao carregar o modelo XGBoost: {e}")
+    else:
+        print("⚠️ Nenhum modelo XGBoost salvo encontrado.")
+
 def treinar_modelo_rf():
     global rf_model
+    conn_local = sqlite3.connect("dados_climaticos.db")
+    cursor_local = conn_local.cursor()
+
     while True:
-        cursor.execute("SELECT temperatura, umidade, vento, enchente FROM clima")
-        dados = cursor.fetchall()
+        cursor_local.execute("SELECT temperatura, umidade, vento, enchente FROM clima")
+        dados = cursor_local.fetchall()
         if len(dados) < 10:
             print("⏳ Aguardando mais dados para treino...")
             time.sleep(3600)
@@ -136,18 +181,13 @@ def treinar_modelo_rf():
 
         X_treino = np.array([d[:3] for d in treino])
         y_treino = np.array([d[3] for d in treino])
-
         X_teste = np.array([d[:3] for d in teste])
         y_teste = np.array([d[3] for d in teste])
 
-        # Treinando o modelo Random Forest
         rf_model.fit(X_treino, y_treino)
-
-        # Avaliar o modelo
         acuracia = rf_model.score(X_teste, y_teste)
         print(f"Acurácia do modelo Random Forest: {acuracia * 100:.2f}%")
 
-        # Salvando o modelo
         joblib.dump(rf_model, 'modelo_rf.pkl')
         print("Modelo Random Forest treinado e salvo!")
         time.sleep(3600)
@@ -182,12 +222,15 @@ def predict_ensemble(lat, lon):
         # Previsão com o modelo Random Forest
         rf_prediction = rf_model.predict([features])[0]
 
+        xgb_prediction = xgb_model.predict_proba([features])[0][1]
+
         # Média ponderada das previsões
-        final_prediction = 0.6 * lstm_prediction + 0.4 * rf_prediction
+        final_prediction = 0.5 * lstm_prediction + 0.3 * rf_prediction +  0.2 * xgb_prediction
 
         salvar_dados(features[0], features[1], features[2], int(final_prediction > 0.5))
 
         return {"enchente": bool(final_prediction > 0.5), "probabilidade": round(final_prediction, 4)}
+    
 
     except Exception as e:
         print(f"Erro na previsão: {e}")
@@ -196,6 +239,12 @@ def predict_ensemble(lat, lon):
     # Treinar o modelo Random Forest em um thread separado
 thread_rf = Thread(target=iniciar_treinamento_rf, daemon=True)
 thread_rf.start()
+
+thread_xgb = Thread(target=treinar_modelo_xgb, daemon=True)
+thread_xgb.start()
+
+carregar_modelo_rf()
+carregar_modelo_xgb()
 
 app = FastAPI()
 app.add_middleware(
