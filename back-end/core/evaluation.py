@@ -113,53 +113,42 @@ def predict_with_ensemble_for_evaluation(features_array):
 
 def run_ensemble_evaluation():
     print("Iniciando avaliação do ensemble...")
-    load_models_for_evaluation() 
+    load_models_for_evaluation()
 
     X_test, y_test_reais = get_evaluation_data(test_size=0.2)
 
     if X_test is None or y_test_reais is None or len(X_test) == 0:
         print("Avaliação cancelada: não foi possível obter dados de teste válidos.")
-        return
+        return {} # Retorna um dicionário vazio em caso de falha
 
     try:
         ensemble_probs, ensemble_classes = predict_with_ensemble_for_evaluation(X_test)
     except Exception as e:
         print(f"Erro durante a predição do ensemble para avaliação: {e}")
-        return
+        return {}
 
     if not ensemble_probs:
         print("Nenhuma previsão do ensemble foi gerada para avaliação.")
-        return
+        return {}
+
+    metrics = {}
+    metrics['mse'] = mean_squared_error(y_test_reais, ensemble_probs)
+    metrics['mcc'] = matthews_corrcoef(y_test_reais, ensemble_classes)
+    metrics['accuracy'] = accuracy_score(y_test_reais, ensemble_classes)
+
+    if len(np.unique(y_test_reais)) > 1:
+        try:
+            metrics['auc_roc'] = roc_auc_score(y_test_reais, ensemble_probs)
+        except ValueError as e:
+            metrics['auc_roc'] = "Não calculável (uma classe presente)"
+    else:
+        metrics['auc_roc'] = "Não calculável (uma classe presente)"
 
     print("\n--- Métricas de Avaliação do Ensemble ---")
-    
-    # Erro Quadrático Médio (MSE) - compara probabilidades com reais (0 ou 1)
-    mse = mean_squared_error(y_test_reais, ensemble_probs)
-    print(f"Erro Quadrático Médio (MSE): {mse:.4f}")
-
-    # Coeficiente de Correlação de Matthews (MCC) - compara classes preditas com reais
-    mcc = matthews_corrcoef(y_test_reais, ensemble_classes)
-    print(f"Coeficiente de Correlação de Matthews (MCC): {mcc:.4f}")
-
-    # Acurácia
-    accuracy = accuracy_score(y_test_reais, ensemble_classes)
-    print(f"Acurácia do Ensemble: {accuracy:.4f}")
-
-    # AUC-ROC - usa probabilidades
-    if len(np.unique(y_test_reais)) > 1: # Precisa de ambas as classes nos dados reais
-        try:
-            auc_roc = roc_auc_score(y_test_reais, ensemble_probs)
-            print(f"AUC-ROC do Ensemble: {auc_roc:.4f}")
-        except ValueError as e:
-            print(f"Não foi possível calcular AUC-ROC: {e}")
-    else:
-        print("AUC-ROC do Ensemble: Não pôde ser calculado (apenas uma classe presente nos dados de teste).")
-
-    print("\nRelatório de Classificação do Ensemble:")
-    try:
-        report = classification_report(y_test_reais, ensemble_classes, target_names=['Não Enchente', 'Enchente'], zero_division=0)
-        print(report)
-    except ValueError as e:
-         print(f"Não foi possível gerar o relatório de classificação: {e}")
-    
+    print(f"Erro Quadrático Médio (MSE): {metrics['mse']:.4f}")
+    print(f"Coeficiente de Correlação de Matthews (MCC): {metrics['mcc']:.4f}")
+    print(f"Acurácia do Ensemble: {metrics['accuracy']:.4f}")
+    print(f"AUC-ROC do Ensemble: {metrics.get('auc_roc', 'N/A')}")
     print("--- Fim da Avaliação do Ensemble ---\n")
+
+    return metrics

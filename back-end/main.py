@@ -73,6 +73,14 @@ app.add_middleware(
 def root():
     return {"mensagem": "API de previsão de enchentes ativa!"}
 
+@app.get("/evaluate/")
+def get_ensemble_evaluation():
+    try:
+        metrics = run_ensemble_evaluation()
+        return metrics
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao executar avaliação: {str(e)}")
+    
 @app.get("/predict/")
 def predict_flood(lat: float, lon: float):
     try:
