@@ -67,7 +67,7 @@ const MapaBrasil = () => {
   useEffect(() => {
     // Buscar dados de avaliação periodicamente (ex: a cada 5 minutos)
     fetchEvaluationData();
-    const intervalId = setInterval(fetchEvaluationData, 3000); // 10 segundos
+    const intervalId = setInterval(fetchEvaluationData, 300000); // 5 minutos
     return () => clearInterval(intervalId); // Limpar intervalo ao desmontar o componente
   }, []);
 
@@ -79,9 +79,24 @@ const MapaBrasil = () => {
       {
         label: 'Métricas de Avaliação do Ensemble',
         data: [
+          //O que avaliamos aqui: Esta métrica mede o erro quadrático médio entre as probabilidades de enchente 
+          // que o nosso modelo prevê (um valor entre 0 e 1) e o resultado real (onde 'enchente' é 1 e 'não enchente' é 0).
           evaluationMetrics.mse,
+
+          //O que avaliamos aqui: O MCC é um coeficiente de correlação que resume a qualidade da classificação binária 
+          // (enchente/não enchente) em um único valor, que varia de -1 a +1. Ele considera todos os quatro componentes
+          //  da matriz de confusão: verdadeiros positivos (enchentes previstas corretamente), verdadeiros negativos 
+          // (não enchentes previstas corretamente), falsos positivos (alarmes falsos de enchente) e falsos negativos (enchentes não detectadas).
           evaluationMetrics.mcc,
+
+          //O que avaliamos aqui: Esta é a métrica mais intuitiva. Ela mede a proporção de todas as previsões que o modelo acertou, 
+          // ou seja, o percentual de dias em que o modelo previu corretamente se haveria ou não uma enchente.
           evaluationMetrics.accuracy,
+
+          //O que avaliamos aqui: A AUC-ROC mede a capacidade geral do modelo de distinguir entre um dia com enchente e um dia sem enchente.
+          //  A curva ROC é construída plotando a taxa de verdadeiros positivos (quantas enchentes o modelo detectou corretamente) 
+          // contra a taxa de falsos positivos (quantas vezes o modelo deu um alarme falso de enchente) para todos os possíveis 
+          // limiares de decisão da probabilidade. A AUC é a área sob essa curva.
           typeof evaluationMetrics.auc_roc === 'number' ? evaluationMetrics.auc_roc : null,
         ],
         backgroundColor: 'rgba(54, 162, 235, 0.6)',
