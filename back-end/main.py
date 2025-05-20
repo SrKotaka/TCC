@@ -10,6 +10,7 @@ from core.training import iniciar_threads_de_treinamento
 from core.models import carregar_modelos
 from services.ensemble import predict_ensemble
 from core.evaluation import run_ensemble_evaluation # Importe sua função
+from core.database import cursor as db_cursor
 
 # Função para o job do scheduler
 def scheduled_evaluation_job():
@@ -87,6 +88,20 @@ def predict_flood(lat: float, lon: float):
         return predict_ensemble(lat, lon)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro na previsão: {str(e)}")
+    
+@app.get("/predict/history/")
+def get_prediction_history(lat: float, lon: float, limit: int = 30): # limite de pontos
+    # Idealmente, adicionar uma pequena tolerância para lat/lon se necessário
+    db_cursor.execute("""
+        SELECT timestamp, predicted_probability
+        FROM clima
+        WHERE latitude = ? AND longitude = ?
+        ORDER BY timestamp DESC
+        LIMIT ?
+    """, (lat, lon, limit))
+    history = db_cursor.fetchall()
+    # Inverter para ordem cronológica para o gráfico
+    return [{"timestamp": row[0], "probability": row[1]} for row in reversed(history)]
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

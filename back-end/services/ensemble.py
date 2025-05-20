@@ -49,8 +49,8 @@ def predict_ensemble(lat, lon):
     final_pred_prob = 0.5 * lstm_pred_prob + 0.3 * rf_pred_prob + 0.2 * xgb_pred_prob
     final_pred_class = int(final_pred_prob > 0.5)
 
-    # Salvar os dados e a predição ajudará a realimentar o sistema
-    salvar_dados(*features, final_pred_class) 
+    if features:
+        salvar_dados(features[0], features[1], features[2], final_pred_class, final_pred_prob, lat, lon) 
 
     return {
         "enchente": bool(final_pred_class),
